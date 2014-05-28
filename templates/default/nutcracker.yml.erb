@@ -1,0 +1,14 @@
+<%= @id %>:
+  listen: 127.0.0.1:<%= @port %>
+  hash: fnv1a_64
+  hash_tag: "{}"
+  distribution: ketama
+  auto_eject_hosts: true
+  redis: true
+  server_retry_timeout: 10000
+  server_failure_limit: 3
+  timeout: 2000
+  servers:
+<% @servers.each do |s| %>
+    - <%= s %>
+<% end %>

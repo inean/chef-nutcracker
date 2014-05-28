@@ -14,3 +14,12 @@ default['nutcracker']['CFLAGS'] = ""
 # This doesn't determine where to put it, it just lets us test if we
 # have successfully completed the process.
 default['nutcracker']['executable'] = "/usr/local/sbin/nutcracker"
+
+# The username to run nutcracker as
+default['nutcracker']['username'] = "nutcracker"
+
+# The user group to run nutcracker as
+default['nutcracker']['user_group'] = "nutcracker"
+
+# Name of the data_bag holding configuration more info
+default['nutcracker']['data_bag_name'] = "nutcracker"
