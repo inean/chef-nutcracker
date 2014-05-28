@@ -19,15 +19,16 @@ DAEMON_ARGS="-c ${CONFFILE} -o ${LOGFILE} -p ${PIDFILE} -s 8622 -d"
 SCRIPTNAME=/etc/init.d/${NAME}
 
 [ -x $DAEMON ] || exit 0
+# Include global nutcracker defaults if available
+if [ -f /etc/default/nutcracker ]; then
+    . /etc/default/nutcracker
+fi
+# Include default nutcracker settings for this specific instance
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 . /lib/init/vars.sh
 . /lib/lsb/init-functions
 
 ulimit -n 32768
-# Include nutcracker defaults if available
-if [ -f /etc/default/nutcracker ]; then
-    . /etc/default/nutcracker
-fi
 
 test_config() {
     if ${DAEMON} -t -c ${CONFFILE} >/dev/null 2>&1; then
@@ -120,6 +121,4 @@ case "$1" in
         ;;
 esac
 
-exit
-${RETVAL}
-
+exit ${RETVAL}
