@@ -13,7 +13,7 @@ where you want your cookbook dependencies installed.  Whatever path you choose t
 sure that is in your cookbook search path.
 
 ```bash
-$ git submodule add https://github.com/vube/chef-nutcracher chef/cookbooks/chef-nutcracker
+$ git submodule add https://github.com/vube/chef-nutcracker chef/cookbooks/chef-nutcracker
 ```
 
 ### In your metadata.rb
