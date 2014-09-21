@@ -25,7 +25,8 @@ instances["instances"].each do |instance|
     mode 0664
     variables :id => instance['id'],
               :port => instance['port'],
-              :servers => instance['servers']
+              :servers => instance['servers'],
+              :redis => instance['redis'].nil? ? true : instance['redis']
   end
 
   # Install the instance init.d startup script
