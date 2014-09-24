@@ -45,6 +45,20 @@ To configure this you must include a nutcracker/instances.json data_bag in your 
 }
 ```
 
+#### Single nutcracker instance using memcache
+
+```json
+{
+	"id": "instances",
+	"instances": [{
+		"id": "my_instance_1",
+		"port": 22122,
+		"redis": false,
+		"servers": ["localhost:11211:1", "localhost:11212:1"]
+	}]
+}
+```
+
 #### Multiple nutcracker instances on different ports
 
 ```json
