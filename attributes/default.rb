@@ -1,6 +1,6 @@
 
 # build_dir: Which directory to clone nutcracker source into and build it
-default['nutcracker']['build_dir'] = "/home/vagrant/build"
+default['nutcracker']['build_dir'] = "/tmp/nutcracker-build"
 
 # configure_flags: Optional flags to pass to nutcracker's configure
 # See https://github.com/twitter/twemproxy for details
