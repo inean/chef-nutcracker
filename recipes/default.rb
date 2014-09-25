@@ -8,6 +8,9 @@
 include_recipe "apt"
 include_recipe "build-essential"
 
+# libtool is required to compile nutcracker
+package "libtool"
+
 bash "clone nutcracker" do
   code <<-EOH
   if [ ! -d "#{node['nutcracker']['build_dir']}" ]; then
