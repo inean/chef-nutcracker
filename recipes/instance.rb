@@ -48,13 +48,16 @@ instances["instances"].each do |instance|
   # Make nutcracker start when the VM boots
   execute "update-rc.d nutcracker_#{instance['port']}" do
     command "sudo update-rc.d nutcracker_#{instance['port']} defaults > /tmp/nutcracker_#{instance['port']}.update-rc.d_log 2>&1"
+    # Don't run update-rc.d if we already have start/stop scripts linked,
+    # it doesn't do anything then anyway.
+    not_if "ls /etc/rc*.d | grep '^S[[:digit:]]*nutcracker_#{instance['port']}$' > /dev/null"
   end
 
   # Start nutcracker now if it is not already running
   execute "start nutcracker_#{instance['port']}" do
     command "sudo /etc/init.d/nutcracker_#{instance['port']} start > /tmp/nutcracker_#{instance['port']}.startup_log 2>&1"
     # But don't start it if it's already running
-    not_if "ps auxgww | grep -v grep | grep nutcracker_#{instance['port']}"
+    not_if "ps auxgww | grep -v grep | grep nutcracker_#{instance['port']} > /dev/null"
   end
 
 end
