@@ -46,7 +46,7 @@ do_start()
         # Set the MAX_FDS limit
         ulimit -n ${MAX_FDS}
     fi
-    test_config
+    test_config || return $?
     start-stop-daemon --start --quiet --pidfile ${PIDFILE} --exec ${DAEMON} \
         --chuid "<%= @username %>:<%= @usergroup %>" -- ${DAEMON_ARGS}
     RETVAL="$?"
@@ -85,19 +85,20 @@ case "$1" in
         esac
     ;;
     status)
-        ps -ef | grep `cat ${PIDFILE}`
-        case "$?" in
-            0|1)
-                echo "nutcracker ${NAME} is running..."
+        pid=$(cat $PIDFILE)
+        nprocs=$(ps -ef | awk "\$2 == $pid" | wc -l)
+        case "$nprocs" in
+            0)
+                echo "${DESC} is not running..."
             ;;
-            2)
-                echo "nutcracker ${NAME} isn't running..."
+            *)
+                echo "${DESC} is running..."
             ;;
          esac
     ;;
     restart)
         log_daemon_msg "Restarting ${DESC}" "${NAME}"
-        test_config
+        test_config || exit $?
         do_stop
         echo "nutcracker has stopped..."
         do_start
