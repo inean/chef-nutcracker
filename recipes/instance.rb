@@ -12,9 +12,12 @@ node['nutcracker']["instances"].each do |id, instance|
   servers = []
   instance['servers'].each do |s|
     while m = s.match(/(.*)\!\{([^\}]+)\}(.*)/) do
-      before = m[0]
-      code = m[1]
-      after = m[2]
+      before = m[1]
+      code = m[2]
+      after = m[3]
+      if code.to_s == ''
+        raise "Code is an empty string! m=#{m.inspect}"
+      end
       Chef::Log.debug("nutcracker server info eval: #{code} from #{s}")
       result = Kernel.eval(code)
       s = "#{before}#{result}#{after}"
