@@ -26,7 +26,3 @@ default['nutcracker']['username'] = "nutcracker"
 
 # The user group to run nutcracker as
 default['nutcracker']['user_group'] = "nutcracker"
-
-# Do you want to prefix all server names with some value?
-# This is useful for semi-templatizing your attributes
-default['nutcracker']['server_name_prefix'] = nil

@@ -10,7 +10,18 @@
 node['nutcracker']["instances"].each do |id, instance|
 
   servers = []
-  instance['servers'].each {|s| servers << "#{node['nutcracker']['server_name_prefix']}#{s}" }
+  instance['servers'].each do |s|
+    while m = s.match(/(.*)\!\{([^\}]+)\}(.*)/) do
+      before = m[0]
+      code = m[1]
+      after = m[2]
+      Chef::Log.debug("nutcracker server info eval: #{code} from #{s}")
+      result = Kernel.eval(code)
+      s = "#{before}#{result}#{after}"
+      Chef::Log.debug("nutcracker server info is now #{s}")
+    end
+    servers << s
+  end
 
   # Install the instance config
   template "/etc/nutcracker/nutcracker_#{instance['port']}.yml" do
