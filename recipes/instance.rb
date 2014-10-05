@@ -9,6 +9,9 @@
 
 node['nutcracker']["instances"].each do |id, instance|
 
+  servers = []
+  instance['servers'].each {|s| servers << "#{node['nutcracker']['server_name_prefix']}#{s}" }
+
   # Install the instance config
   template "/etc/nutcracker/nutcracker_#{instance['port']}.yml" do
     source "nutcracker.yml.erb"
@@ -18,7 +21,7 @@ node['nutcracker']["instances"].each do |id, instance|
     mode 0664
     variables :id => id,
               :port => instance['port'],
-              :servers => instance['servers'],
+              :servers => servers,
               :redis => instance['redis'].nil? ? true : instance['redis']
   end
 
