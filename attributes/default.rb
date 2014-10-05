@@ -1,6 +1,12 @@
 
+# You should override this in your own attributes to define whatever
+# instances you want to create
+#
+# See the README.md for examples
+default['nutcracker']['instances'] = {}
+
 # build_dir: Which directory to clone nutcracker source into and build it
-default['nutcracker']['build_dir'] = "/tmp/nutcracker-build"
+default['nutcracker']['build_dir'] = "#{Chef::Config[:file_cache_path]}/nutcracker"
 
 # configure_flags: Optional flags to pass to nutcracker's configure
 # See https://github.com/twitter/twemproxy for details
@@ -20,6 +26,3 @@ default['nutcracker']['username'] = "nutcracker"
 
 # The user group to run nutcracker as
 default['nutcracker']['user_group'] = "nutcracker"
-
-# Name of the data_bag holding configuration more info
-default['nutcracker']['data_bag_name'] = "nutcracker"

@@ -7,23 +7,16 @@
 
 # Initialize any server instances on the VM based on the data_bag config
 
-instances = { "instances" => [] }
-begin
-  instances = data_bag_item(node["nutcracker"]["data_bag_name"], "instances")
-rescue
-  Chef::Log.info "No nutcracker instances specified in #{node["nutcracker"]["data_bag_name"]} data_bag"
-end
-
-instances["instances"].each do |instance|
+node['nutcracker']["instances"].each do |id, instance|
 
   # Install the instance config
   template "/etc/nutcracker/nutcracker_#{instance['port']}.yml" do
     source "nutcracker.yml.erb"
-    action :create_if_missing
+    action :create
     owner node['nutcracker']['username']
     group node['nutcracker']['user_group']
     mode 0664
-    variables :id => instance['id'],
+    variables :id => id,
               :port => instance['port'],
               :servers => instance['servers'],
               :redis => instance['redis'].nil? ? true : instance['redis']
@@ -33,11 +26,11 @@ instances["instances"].each do |instance|
   # Install the instance config
   template "/etc/init.d/nutcracker_#{instance['port']}" do
     source "nutcracker.sh.erb"
-    action :create_if_missing
+    action :create
     owner "root"
     group "root"
     mode 0755
-    variables :id => instance['id'],
+    variables :id => id,
               :port => instance['port'],
               :servers => instance['servers'],
               :executable => node['nutcracker']['executable'],
