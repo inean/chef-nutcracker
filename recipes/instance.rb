@@ -45,7 +45,6 @@ node['nutcracker']["instances"].each do |id, instance|
     variables :id => id,
               :port => instance['port'],
               :servers => servers,
-              :stats_port => instance['stats_port'].nil? ? node['nutcracker']['default'][:stats_port] : instance['stats_port'],
               :auto_eject_hosts => instance['auto_eject_hosts'].nil? ? node['nutcracker']['default'][:auto_eject_hosts] : instance['auto_eject_hosts'],
               :redis => instance['redis'].nil? ? node['nutcracker']['default'][:redis] : instance['redis']
     notifies :restart, "service[nutcracker_#{instance['port']}]"
@@ -62,6 +61,7 @@ node['nutcracker']["instances"].each do |id, instance|
     variables :id => id,
               :port => instance['port'],
               :servers => instance['servers'],
+              :stats_port => instance['stats_port'].nil? ? node['nutcracker']['default'][:stats_port] : instance['stats_port'],
               :executable => node['nutcracker']['executable'],
               :username => node['nutcracker']['username'],
               :usergroup => node['nutcracker']['user_group']
