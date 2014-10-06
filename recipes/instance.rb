@@ -68,15 +68,7 @@ node['nutcracker']["instances"].each do |id, instance|
     notifies :restart, "service[nutcracker_#{instance['port']}]"
   end
 
-#  # Make nutcracker start when the VM boots
-#  execute "update-rc.d nutcracker_#{instance['port']}" do
-#    command "sudo update-rc.d nutcracker_#{instance['port']} defaults"
-#    # Don't run update-rc.d if we already have start/stop scripts linked,
-#    # it doesn't do anything then anyway.
-#    not_if "ls /etc/rc*.d | grep '^S[[:digit:]]*nutcracker_#{instance['port']}$' > /dev/null"
-#  end
-
-# Start nutcracker now if it is not already running
+  # Start nutcracker and enable it at future system boot
   service "nutcracker_#{instance['port']}" do
     supports :restart => true, :status => true, :configtest => true
     action [:start, :enable]
