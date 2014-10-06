@@ -3,7 +3,7 @@
   hash: fnv1a_64
   hash_tag: "{}"
   distribution: ketama
-  auto_eject_hosts: true
+  auto_eject_hosts: <%= @auto_eject_hosts %>
   redis: <%= @redis %>
   server_retry_timeout: 10000
   server_failure_limit: 3

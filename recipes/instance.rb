@@ -9,6 +9,21 @@
 
 node['nutcracker']["instances"].each do |id, instance|
 
+  # Start nutcracker now if it is not already running
+  service "nutcracker_#{instance['port']}" do
+    supports :restart => true, :status => true, :configtest => true
+    action :nothing
+  end
+
+  # instance['servers'] is a string template.
+  #
+  # The special sequence !{eval_code} will evaluate the Ruby code 'eval_code'
+  # and its result will be replaced in the string.  It's like #{eval_code}
+  # in normal Ruby strings, but it's a post-process value of that.
+  #
+  # Example: server = "foo!{true?'=':'!='}bar"
+  # Result: server = "foo=bar"
+
   servers = []
   instance['servers'].each do |s|
     while m = s.match(/(.*)\!\{([^\}]+)\}(.*)/) do
@@ -36,7 +51,10 @@ node['nutcracker']["instances"].each do |id, instance|
     variables :id => id,
               :port => instance['port'],
               :servers => servers,
-              :redis => instance['redis'].nil? ? true : instance['redis']
+              :stats_port => instance['stats_port'].nil? ? node['nutcracker']['default'][:stats_port] : instance['stats_port'],
+              :auto_eject_hosts => instance['auto_eject_hosts'].nil? ? node['nutcracker']['default'][:auto_eject_hosts] : instance['auto_eject_hosts'],
+              :redis => instance['redis'].nil? ? node['nutcracker']['default'][:redis] : instance['redis']
+    notifies :restart, "service[nutcracker_#{instance['port']}]"
   end
 
   # Install the instance init.d startup script
@@ -53,21 +71,19 @@ node['nutcracker']["instances"].each do |id, instance|
               :executable => node['nutcracker']['executable'],
               :username => node['nutcracker']['username'],
               :usergroup => node['nutcracker']['user_group']
+    notifies :restart, "service[nutcracker_#{instance['port']}]"
   end
 
-  # Make nutcracker start when the VM boots
-  execute "update-rc.d nutcracker_#{instance['port']}" do
-    command "sudo update-rc.d nutcracker_#{instance['port']} defaults"
-    # Don't run update-rc.d if we already have start/stop scripts linked,
-    # it doesn't do anything then anyway.
-    not_if "ls /etc/rc*.d | grep '^S[[:digit:]]*nutcracker_#{instance['port']}$' > /dev/null"
-  end
+#  # Make nutcracker start when the VM boots
+#  execute "update-rc.d nutcracker_#{instance['port']}" do
+#    command "sudo update-rc.d nutcracker_#{instance['port']} defaults"
+#    # Don't run update-rc.d if we already have start/stop scripts linked,
+#    # it doesn't do anything then anyway.
+#    not_if "ls /etc/rc*.d | grep '^S[[:digit:]]*nutcracker_#{instance['port']}$' > /dev/null"
+#  end
 
-  # Start nutcracker now if it is not already running
-  execute "start nutcracker_#{instance['port']}" do
-    command "sudo /etc/init.d/nutcracker_#{instance['port']} start"
-    # But don't start it if it's already running
-    not_if "ps auxgww | grep -v grep | grep nutcracker_#{instance['port']} > /dev/null"
+  service "service[nutcracker_#{instance['port']}]" do
+    action [:start, :enable]
   end
 
 end

@@ -26,3 +26,11 @@ default['nutcracker']['username'] = "nutcracker"
 
 # The user group to run nutcracker as
 default['nutcracker']['user_group'] = "nutcracker"
+
+# Default values for configuring nutcracker instances if you don't specify
+# values in each instance's settings.
+default['nutcracker']['default'] = {
+    :redis => true,
+    :stats_port => 8622,
+    :auto_eject_hosts => false,
+}

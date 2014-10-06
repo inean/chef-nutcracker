@@ -11,6 +11,8 @@ include_recipe "build-essential"
 # libtool is required to compile nutcracker
 package "libtool"
 
+# TODO- This does not provide any way to upgrade an existing nutcracker server
+
 bash "clone nutcracker" do
   code <<-EOH
   if [ ! -d "#{node['nutcracker']['build_dir']}" ]; then
