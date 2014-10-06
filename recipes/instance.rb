@@ -9,12 +9,6 @@
 
 node['nutcracker']["instances"].each do |id, instance|
 
-  # Start nutcracker now if it is not already running
-  service "nutcracker_#{instance['port']}" do
-    supports :restart => true, :status => true, :configtest => true
-    action :nothing
-  end
-
   # instance['servers'] is a string template.
   #
   # The special sequence !{eval_code} will evaluate the Ruby code 'eval_code'
@@ -82,7 +76,9 @@ node['nutcracker']["instances"].each do |id, instance|
 #    not_if "ls /etc/rc*.d | grep '^S[[:digit:]]*nutcracker_#{instance['port']}$' > /dev/null"
 #  end
 
-  service "service[nutcracker_#{instance['port']}]" do
+# Start nutcracker now if it is not already running
+  service "nutcracker_#{instance['port']}" do
+    supports :restart => true, :status => true, :configtest => true
     action [:start, :enable]
   end
 
