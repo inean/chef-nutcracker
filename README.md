@@ -59,10 +59,12 @@ default['nutcracker']['instances']['my_instance'] = {
 ```ruby
 default['nutcracker']['instances']['my_instance_1'] = {
     'port' => 22122,
+    'status_port' => 8622,
     'servers' => ['localhost:6375:1', 'localhost:6379:1']
 }
 default['nutcracker']['instances']['my_instance_2'] = {
     'port' => 33233,
+    'status_port' => 8623,
     'servers' => ['localhost:7486:1', 'localhost:7480:1']
 }
 ```
