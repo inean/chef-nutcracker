@@ -9,28 +9,48 @@
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
-NAME=nutcracker_<%= @port %>
 DESC="nutcracker on port <%= @port %>"
+NAME=nutcracker_<%= @port %>
 CONFFILE=/etc/nutcracker/${NAME}.yml
 LOGFILE=/var/log/nutcracker/${NAME}.log
+PIDFILE=/var/run/${NAME}.pid
 DAEMON="<%= @executable %>"
-PIDFILE=/var/run/nutcracker/${NAME}.pid
 DAEMON_ARGS="-c ${CONFFILE} -o ${LOGFILE} -p ${PIDFILE} -s <%= @stats_port %> -d"
 SCRIPTNAME=/etc/init.d/${NAME}
 
+# Exit if the package is not installed
 [ -x $DAEMON ] || exit 0
+
 # Include global nutcracker defaults if available
-if [ -f /etc/default/nutcracker ]; then
-    . /etc/default/nutcracker
-fi
+[ -r /etc/default/nutcracker ] && . /etc/default/nutcracker
+
 # Include default nutcracker settings for this specific instance
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.2-14) to ensure that this file is present
+# and status_of_proc is working.
 . /lib/lsb/init-functions
 
+# Add a safe ulimit
 ulimit -n 32768
 
-test_config() {
+#Ensure piddir is valid
+PIDDIR=$(dirname $PIDFILE)
+
+# Create PIDDIR...
+[ ! -d $PIDDIR ] && mkdir -p $PIDDIR
+
+# Ensure dir is owned by $daemon
+chown <%= @username %> $PIDDIR
+chgrp <%= @usergroup %> $PIDDIR
+
+
+test_config()
+{
     if ${DAEMON} -t -c ${CONFFILE} >/dev/null 2>&1; then
         return 0
     else
@@ -43,14 +63,20 @@ do_start()
 {
     # Check if the MAX_FDS limit is set in /etc/default/nutcracker
     if [ -n "${MAX_FDS}" ]; then
-        # Set the MAX_FDS limit
         ulimit -n ${MAX_FDS}
     fi
-    test_config || return $?
+    # Return
+    #   0 if daemon has been started
+    #   1 if daemon was already running
+    #   2 if daemon could not be started
+    test_config || return 2
+
     start-stop-daemon --start --quiet --pidfile ${PIDFILE} --exec ${DAEMON} \
-        --chuid "<%= @username %>:<%= @usergroup %>" -- ${DAEMON_ARGS}
-    RETVAL="$?"
-    return "${RETVAL}"
+        --chuid "<%= @username %>:<%= @usergroup %>" --test > /dev/null     \
+        || return 1
+    start-stop-daemon --start --quiet --pidfile ${PIDFILE} --exec ${DAEMON} \
+        --chuid "<%= @username %>:<%= @usergroup %>" -- ${DAEMON_ARGS}      \
+        || return 2
 }
 
 do_stop()
@@ -60,11 +86,20 @@ do_stop()
     #   1 if daemon was already stopped
     #   2 if daemon could not be stopped
     #   other if a failure occurred
-
-    kill -9 `cat ${PIDFILE}`
+    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile ${PIDFILE} --name ${NAME}
     RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
+    # Wait for children to finish too if this is a daemon that forks
+    # and if the daemon is only ever run from this initscript.
+    # If the above conditions are not satisfied then add some other code
+    # that waits for the process to drop all resources that could be
+    # needed by services started subsequently.  A last resort is to
+    # sleep for some time.
+    start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec ${DAEMON}
+    [ "$?" = 2 ] && return 2
+    # Many daemons don't delete their pidfiles when they exit.
     rm -f ${PIDFILE}
-    return "${RETVAL}"
+    return "$RETVAL"
 }
 
 case "$1" in
@@ -85,41 +120,35 @@ case "$1" in
         esac
     ;;
     status)
-        pid=$(cat $PIDFILE)
-        nprocs=$(ps -ef | awk "\$2 == $pid" | wc -l)
-        case "$nprocs" in
-            0)
-                echo "${DESC} is not running..."
-            ;;
-            *)
-                echo "${DESC} is running..."
-            ;;
-         esac
+        status_of_proc -p ${PIDFILE} ${DAEMON} ${NAME} && exit 0 || exit $?
     ;;
     restart)
         log_daemon_msg "Restarting ${DESC}" "${NAME}"
         test_config || exit $?
         do_stop
-        echo "nutcracker has stopped..."
-        do_start
+        case "$?" in
+            0|1)
+                do_start
                 case "$?" in
                     0) log_end_msg 0 ;;
                     1) log_end_msg 1 ;; # Old process is still running
                     *) log_end_msg 1 ;; # Failed to start
                 esac
+                ;;
+            *)
+                # Failed to stop
+                log_end_msg 1
+                ;;
+        esac
     ;;
     configtest|testconfig)
-        echo -n "Testing ${DESC} configuration: "
-        if test_config; then
-            echo "${NAME}."
-        else
-            exit $?
-        fi
+        log_daemon_msg "Testing ${DESC} configuration" "${NAME}"
+        test_config || exit $?
     ;;
     *)
         echo "Usage: $SCRIPTNAME {start|stop|status|restart|configtest}" >&2
         exit 3
-        ;;
+    ;;
 esac
 
-exit ${RETVAL}
+:

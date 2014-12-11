@@ -62,7 +62,7 @@ bash "create nutcracker user" do
 end
 
 # Create directories and give nutcracker user write permissions in them
-%w[/etc/nutcracker /var/log/nutcracker /var/run/nutcracker].each do |path|
+%w[/etc/nutcracker /var/log/nutcracker].each do |path|
   directory path do
     owner node['nutcracker']['username']
     group node['nutcracker']['user_group']
